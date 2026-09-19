@@ -40,6 +40,10 @@ jobs:
     check-conventional-commits:
       name: Check commit decoration
       runs-on: ubuntu-latest
+      # Dependabot's auto-generated commit subjects (e.g. "Bump x from y to z") are
+      # capitalized and fail commitlint's subject-case rule; its messages are otherwise
+      # trustworthy and don't need linting, so skip this check for its PRs.
+      if: github.actor != 'dependabot[bot]'
       permissions:
         contents: read
         pull-requests: read
