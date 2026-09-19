@@ -1,0 +1,14 @@
+app:
+  name: my-service
+  version: "1.0.0"
+  replicas: 3
+
+database:
+  host: db.example.com
+  port: 5432
+  name: mydb
+
+features:
+  - auth
+  - notifications
+  - analytics

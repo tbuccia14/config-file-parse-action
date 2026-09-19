@@ -1,0 +1,101 @@
+name: CI
+run-name: CI tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Check lockfile is up to date
+        run: uv lock --check
+
+      - name: Lint with ruff
+        run: uv run --group dev ruff check src tests
+
+      - name: Check formatting with ruff
+        run: uv run --group dev ruff format --check src tests
+
+      - name: Run tests with coverage
+        run: uv run --group dev pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=80 -v
+
+      - name: Generate coverage badge
+        run: uv run --group dev coverage-badge -o coverage-badge.svg -f
+
+      - name: Commit updated coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if ! git diff --quiet -- coverage-badge.svg; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add coverage-badge.svg
+            git commit -m "chore(ci): update coverage badge [skip ci]"
+            git push
+          fi
+
+  integration-tests:
+    name: Integration Test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Test YAML → GITHUB_ENV (no prefix)
+        uses: ./
+        with:
+          file: tests/fixtures/config.yml
+
+      - name: Verify YAML env variables
+        shell: bash
+        run: |
+          echo "APP_NAME=$APP_NAME"
+          echo "DATABASE_HOST=$DATABASE_HOST"
+          echo "DATABASE_PORT=$DATABASE_PORT"
+          [ "$APP_NAME" = "my-service" ] || exit 1
+          [ "$DATABASE_HOST" = "db.example.com" ] || exit 1
+
+      - name: Test JSON → GITHUB_ENV (with prefix)
+        uses: ./
+        with:
+          file: tests/fixtures/config.json
+          prefix: CFG
+
+      - name: Verify JSON env variables with prefix
+        shell: bash
+        run: |
+          echo "CFG_APP_NAME=$CFG_APP_NAME"
+          [ "$CFG_APP_NAME" = "my-service" ] || exit 1
+
+      - name: Test YAML → GITHUB_ENV (simple)
+        uses: ./
+        with:
+          file: tests/fixtures/simple.yml
+
+      - name: Verify simple env variable
+        shell: bash
+        run: |
+          echo "SIMPLE_KEY=$SIMPLE_KEY"
+          [ "$SIMPLE_KEY" = "simple_value" ] || exit 1

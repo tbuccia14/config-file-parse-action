@@ -1,0 +1,53 @@
+name: PR Checks
+run-name: Pull Request Checks
+
+on:
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+      - release/*
+  workflow_dispatch:
+
+jobs:
+    actionlint:
+      name: Lint GitHub Actions workflows
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v7
+
+        - name: Run actionlint
+          uses: reviewdog/action-actionlint@320fcdd9c860767cf17fab3b20e22e739d5d02b8 # v1.76.0
+
+    action-validator:
+      name: Validate action.yml / workflow schemas
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v7
+
+        - name: Run action-validator
+          uses: mpalmer/action-validator@c994f427b7c42cd5ecb1bc9315cb91c3d7d72e3d # v0.9.0
+
+    check-conventional-commits:
+      name: Check commit decoration
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        pull-requests: read
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v7
+          with:
+            fetch-depth: 0
+
+        - name: Validate PR commits with commitlint
+          uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1

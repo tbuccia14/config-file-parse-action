@@ -1,0 +1,36 @@
+{
+  "name": "config-file-parse-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action that parses a JSON or YAML config file and exports key-value pairs to GITHUB_OUTPUT or GITHUB_ENV",
+  "scripts": {
+    "prepare": "is-ci || husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbuccia14/config-file-parse-action.git"
+  },
+  "keywords": [
+    "actions",
+    "config",
+    "json",
+    "yaml",
+    "parser",
+    "github-actions"
+  ],
+  "author": "tbuccia14",
+  "devDependencies": {
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@semantic-release/changelog": "7.0.0",
+    "@semantic-release/commit-analyzer": "13.0.1",
+    "@semantic-release/exec": "7.1.0",
+    "@semantic-release/git": "11.0.1",
+    "@semantic-release/github": "12.0.9",
+    "@semantic-release/release-notes-generator": "14.1.1",
+    "conventional-changelog-conventionalcommits": "10.4.0",
+    "husky": "9.1.7",
+    "is-ci": "4.1.0",
+    "semantic-release": "25.0.9"
+  }
+}

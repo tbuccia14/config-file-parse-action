@@ -1,0 +1,66 @@
+name: GitHub Action CI
+run-name: Release a new version of the action
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-actor:
+    name: Verify triggering actor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Fail if not triggered by a CODEOWNER
+        run: |
+          owners=$(grep -E '^\*[[:space:]]' .github/CODEOWNERS | grep -oE '@[A-Za-z0-9_-]+' | tr -d '@')
+          if ! echo "$owners" | grep -qx "${{ github.actor }}"; then
+            echo "::error::Workflow triggered by '${{ github.actor }}', who is not listed in .github/CODEOWNERS. Allowed: $(echo "$owners" | tr '\n' ' ')"
+            exit 1
+          fi
+
+  release:
+    name: Create release and tags
+    needs: check-actor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move major version tag
+        run: |
+          git fetch --tags
+          new_tag=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$new_tag" ]; then
+            echo "No new release tag found on HEAD; skipping major tag update."
+            exit 0
+          fi
+          major="${new_tag%%.*}"
+          git tag -f "$major" "$new_tag"
+          git push origin "$major" --force

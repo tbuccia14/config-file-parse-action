@@ -1,0 +1,27 @@
+[project]
+name = "config-file-parse-action"
+version = "1.0.0"
+description = "GitHub Action to parse JSON/YAML config files and export key-value pairs in GITHUB_ENV"
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "coverage-badge",
+    "setuptools<81",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

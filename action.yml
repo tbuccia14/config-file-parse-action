@@ -1,0 +1,38 @@
+name: 'Config File Parser'
+description: 'Parse a JSON or YAML config file and export all key-value pairs to GITHUB_ENV'
+author: 'tbuccia14'
+
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  file:
+    description: 'Path to the JSON or YAML config file to parse'
+    required: true
+  prefix:
+    description: 'Optional prefix for all variable names (e.g. "APP" → "APP_DATABASE_HOST")'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8
+      with:
+        enable-cache: true
+        python-version: "3.12"
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: uv sync --no-dev
+
+    - name: Parse config file
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_FILE: ${{ inputs.file }}
+        INPUT_PREFIX: ${{ inputs.prefix }}
+      run: uv run --no-sync "${{ github.action_path }}/src/parser.py"
