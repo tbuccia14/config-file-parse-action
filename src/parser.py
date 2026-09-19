@@ -61,6 +61,14 @@ def write_variables(variables, target_file):
 
 
 def main():
+    # Ensure stdout/stderr can always encode the ✓/→ symbols used below, regardless of the
+    # platform's default console encoding (e.g. Windows runners default to cp1252). Guarded
+    # with hasattr since redirected streams in tests (e.g. io.StringIO) lack reconfigure().
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+
     file_path = os.environ.get("INPUT_FILE", "").strip()
     prefix = os.environ.get("INPUT_PREFIX", "").strip().upper()
 
