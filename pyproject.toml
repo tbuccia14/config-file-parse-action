@@ -12,7 +12,10 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage-badge",
-    "setuptools<85",
+    # coverage-badge depends on the deprecated pkg_resources module, removed in
+    # setuptools>=81. Keep this ceiling until coverage-badge drops the dependency
+    # (see .github/dependabot.yml, which also ignores updates past this range).
+    "setuptools<81",
     "ruff",
 ]
 

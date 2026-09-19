@@ -9,6 +9,11 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # pkg_resources (used by coverage-badge) was removed in setuptools>=81;
+      # do not let Dependabot widen this ceiling. See pyproject.toml.
+      - dependency-name: "setuptools"
+        versions: [">=81"]
 
   - package-ecosystem: "npm"
     directory: "/"
